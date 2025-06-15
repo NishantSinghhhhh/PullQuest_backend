@@ -88,5 +88,3 @@ export default mongoose.model<IGitHubRepository>(
   "GitHubRepository",
   gitHubRepositorySchema
 );
-
-// Working till now

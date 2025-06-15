@@ -42,6 +42,6 @@ router.post("/stakes", stakeController.createStake);
 router.patch("/stakes/:stakesId", stakeController.updateStakeStatus);
 router.get("/:userId/stakes", stakeController.getUserStakes);
 router.get("/profile/:userId", contributorController.getContributorProfile);
-router.post("/prepare-stakes", contributorController.prepareStake);
+router.post("prepare-stakes", contributorController.prepareStake);
 
 export default router;

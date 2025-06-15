@@ -25,7 +25,7 @@ export class ContributorController {
       if (!userId || !githubUsername) {
         res.status(400).json({
           success: false,
-          message: "User ID and GitHub username are required here",
+          message: "User ID and GitHub username are required",
         });
         return;
       }
