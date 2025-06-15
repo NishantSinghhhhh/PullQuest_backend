@@ -10,7 +10,7 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
   const { email, password, role, githubUsername } = req.body;
 
   if (!role || !password) {
-    res.status(400).json({ message: "Role and password are required" });
+    res.status(400).json({ message: "Role & password are required" });
     return;
   }
 
