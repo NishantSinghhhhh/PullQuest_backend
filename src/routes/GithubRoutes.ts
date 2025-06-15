@@ -68,7 +68,7 @@ router.get(
     try {
       const code = req.query.code as string;
       if (!code) {
-        res.status(400).send("Missing  code");
+        res.status(400).send("Missin code");
         return;
       }
 
