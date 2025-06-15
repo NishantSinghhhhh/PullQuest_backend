@@ -12,7 +12,7 @@ export const scheduleCoinRefill = () => {
         }
       );
 
-      console.log(`Refilled coins for ${result.modifiedCount} contributors`);
+      console.log(`Refilled coin for ${result.modifiedCount} contributors`);
     } catch (error) {
       console.error("Coin Refill Failed ,contact us: ", error);
     }
