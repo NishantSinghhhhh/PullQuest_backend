@@ -1,6 +1,7 @@
 import { Router } from "express";
 import fetch from "node-fetch";
 import { Request, Response, NextFunction } from "express";
+import User from "../model/User";
 import {
   GitHubOrganizationsService,
   IOrganization,
@@ -52,7 +53,7 @@ router.get(
       const params = new URLSearchParams({
         client_id: process.env.GITHUB_CLIENT_ID as string,
         redirect_uri: process.env.GITHUB_CALLBACK_URL as string,
-        scope: "read:user user:email",
+        scope: "read:user user:email repo",
       });
       res.redirect(`https://github.com/login/oauth/authorize?${params}`);
     } catch (err) {
@@ -64,16 +65,16 @@ router.get(
 // Handle callback
 router.get(
   "/auth/callback/github",
-  (req: Request, res: Response, next: NextFunction): void => {
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const code = req.query.code as string;
       if (!code) {
-        res.status(400).send("Missing code");
+        res.redirect(`http://localhost:5173/login?error=missing_code`);
         return;
       }
 
       // Exchange code for token
-      fetch("https://github.com/login/oauth/access_token", {
+      const tokenResponse = await fetch("https://github.com/login/oauth/access_token", {
         method: "POST",
         headers: {
           Accept: "application/json",
@@ -84,39 +85,90 @@ router.get(
           client_secret: process.env.GITHUB_CLIENT_SECRET,
           code,
         }),
-      })
-        .then((tokenResp) => tokenResp.json())
-        .then((tokenJson: any) => {
-          const access_token = tokenJson.access_token as string;
-          if (!access_token) {
-            res
-              .status(401)
-              .json({
-                error: tokenJson.error_description || "Token exchange failed",
-              });
-            return;
-          }
+      });
 
-          // Fetch profile
-          return fetch("https://api.github.com/user", {
-            headers: { Authorization: `Bearer ${access_token}` },
-          });
-        })
-        .then((userResp) => userResp?.json())
-        .then((profile: any) => {
-          // Store in session
-          req.session.user = {
-            githubId: profile.id,
-            login: profile.login,
-            avatar: profile.avatar_url,
-          };
+      const tokenJson: any = await tokenResponse.json();
+      const access_token = tokenJson.access_token as string;
+      
+      if (!access_token) {
+        console.error("No access token received:", tokenJson);
+        res.redirect(`http://localhost:5173/login?error=oauth_failed`);
+        return;
+      }
 
-          // Redirect to front-end
-          res.redirect("http://localhost:3000/");
-        })
-        .catch((err) => next(err));
+      // Fetch GitHub profile
+      const userResponse = await fetch("https://api.github.com/user", {
+        headers: { Authorization: `Bearer ${access_token}` },
+      });
+      
+      const githubProfile: any = await userResponse.json();
+      console.log("GitHub Profile:", githubProfile);
+
+      // Find user in database by GitHub username
+      const existingUser = await User.findOne({
+        githubUsername: githubProfile.login
+      });
+
+      if (!existingUser) {
+        console.error("User not found for GitHub username:", githubProfile.login);
+        res.redirect(`http://localhost:5173/login?error=user_not_found&username=${githubProfile.login}`);
+        return;
+      }
+
+      // Update user with GitHub info and access token
+      existingUser.accessToken = access_token;
+      existingUser.githubInfo = JSON.stringify({
+        name: githubProfile.name,
+        avatar_url: githubProfile.avatar_url,
+        public_repos: githubProfile.public_repos,
+        followers: githubProfile.followers,
+        following: githubProfile.following,
+        location: githubProfile.location,
+        bio: githubProfile.bio,
+        company: githubProfile.company,
+      });
+
+      await existingUser.save();
+
+      // Create user object for frontend
+      const userForFrontend = {
+        _id: existingUser._id,
+        id: existingUser._id,
+        email: existingUser.email,
+        role: existingUser.role,
+        githubUsername: existingUser.githubUsername,
+        xp: existingUser.xp || 0,
+        coins: existingUser.coins || 100,
+        isActive: existingUser.isActive,
+        accessToken: access_token,
+        githubInfo: {
+          name: githubProfile.name,
+          avatar_url: githubProfile.avatar_url,
+          public_repos: githubProfile.public_repos,
+          followers: githubProfile.followers,
+          following: githubProfile.following,
+          location: githubProfile.location,
+          bio: githubProfile.bio,
+        },
+        profile: {
+          name: existingUser.profile?.name || githubProfile.name,
+          bio: existingUser.profile?.bio || githubProfile.bio,
+          username: existingUser.githubUsername,
+        },
+        weeklyCoinsEarned: 0,
+        lastLogin: existingUser.lastLogin,
+        createdAt: existingUser.createdAt,
+      };
+
+      console.log("Sending user to frontend:", userForFrontend);
+
+      // Redirect to frontend with user data
+      const userParam = encodeURIComponent(JSON.stringify(userForFrontend));
+      res.redirect(`http://localhost:5173/login?user=${userParam}`);
+
     } catch (err) {
-      next(err);
+      console.error("OAuth callback error:", err);
+      res.redirect(`http://localhost:5173/login?error=oauth_error`);
     }
   }
 );
