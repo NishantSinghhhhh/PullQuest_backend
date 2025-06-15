@@ -1,6 +1,6 @@
 import { Router, RequestHandler } from "express";
 import User from "../model/User";
-import { listUserOrgs, listUserRepos, listRepoIssues, getIssueByNumber, listRepoPullRequests, mergePullRequestAsUser} from "../controllers/MaintainerController";
+import { listUserOrgs, listUserRepos, listRepoIssues, getIssueByNumber, listRepoPullRequests, mergePullRequestAsUser, updateUserStatsAsUser} from "../controllers/MaintainerController";
 import { verifyToken } from "../middleware/verifyToken";
 import { createRepoIssueAsUser } from "../controllers/MaintainerController";
 import { ingestIssue } from "../controllers/IssueIngestController";
@@ -269,6 +269,16 @@ const getRepoIssues: RequestHandler = async (req, res) => {
       return
     }
   }
+
+  router.patch("/users/update-stats", async (req, res, next) => {
+    try {
+      const { githubUsername, addedXp, addedCoins } = req.body;
+      const result = await updateUserStatsAsUser(githubUsername, addedXp, addedCoins);
+      res.json({ success: true, ...result });
+    } catch (err) {
+      next(err);
+    }
+  });
 
 router.get("/orgs-by-username", getOrgsByUsername);
 router.get("/repos-by-username", getReposByUsername); // <-- Register your new route

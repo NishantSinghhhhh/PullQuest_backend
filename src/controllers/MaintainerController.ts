@@ -1,6 +1,7 @@
 // src/utils/github.ts
 import { Octokit } from "@octokit/rest";
 import { RequestHandler } from "express";
+import User from "../model/User";
 
 export async function listUserOrgs(
   username: string,
@@ -388,5 +389,44 @@ export async function listUserRepos(
   
       throw new Error(error.message || "Unknown GitHub error")
     }
+  }
+  
+  export async function updateUserStatsAsUser(
+    githubUsername: string,
+    addedXp: number,
+    addedCoins: number
+  ): Promise<{
+    githubUsername: string;
+    newXp: number;
+    newCoins: number;
+  }> {
+    if (!githubUsername) {
+      throw new Error("githubUsername is required");
+    }
+  
+    const updated = await User.findOneAndUpdate(
+      { githubUsername },
+      {
+        $inc: {
+          xp: addedXp,
+          coins: addedCoins,
+        },
+        updatedAt: new Date(),
+      },
+      { new: true }
+    )
+      .select("githubUsername xp coins")
+      .lean(); // optional: returns a plain object instead of a Mongoose Document
+  
+    if (!updated) {
+      throw new Error(`No user found for githubUsername="${githubUsername}"`);
+    }
+  
+    return {
+      // use `!` to assert these fields are present
+      githubUsername: updated.githubUsername!,
+      newXp: updated.xp!,
+      newCoins: updated.coins!,
+    };
   }
   
