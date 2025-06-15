@@ -4,6 +4,7 @@ import { listUserOrgs, listUserRepos, listRepoIssues, getIssueByNumber, listRepo
 import { verifyToken } from "../middleware/verifyToken";
 import { createRepoIssueAsUser } from "../controllers/MaintainerController";
 import { ingestIssue } from "../controllers/IssueIngestController";
+import { ingestMergedPR } from "../controllers/PRIngesterController";
 import MaintainerIssue from "../model/MaintainerIssues";
 const router = Router();
 router.use(verifyToken);
@@ -278,5 +279,6 @@ router.get("/repo-pulls", getRepoPullRequests);
 router.get("/issue-by-number", getIssueByNumber);
 router.post("/merge-pr", mergePullRequest);
 router.get("/issue-by-id", getMaintainerIssueById)
-
+router.post("/ingest-merged-pr", ingestMergedPR)
 export default router;
+
