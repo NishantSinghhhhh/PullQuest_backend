@@ -5,7 +5,7 @@ export class CoinUtils {
 
   static calculateEarnings(
     stake: number,
-    outcome: "aAcepted" | "rejected"
+    outcome: "accepted" | "rejected"
   ): number {
     return outcome === "accepted" ? stake * 2 : Math.floor(stake * 0.5);
   }
