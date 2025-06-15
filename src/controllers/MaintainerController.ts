@@ -1,7 +1,7 @@
 // src/utils/github.ts
 import { Octokit } from "@octokit/rest";
 import { RequestHandler } from "express";
-import GitHubIssuesModel, { IGitHubIssues } from "../model/githubIssues";  
+
 export async function listUserOrgs(
   username: string,
   perPage: number = 30,
