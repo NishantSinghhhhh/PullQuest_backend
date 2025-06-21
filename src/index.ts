@@ -13,6 +13,7 @@ import contributorRoutes from "./routes/contributorRoutes";
 import maintainerRoutes from "./routes/MaintainerRoutes";
 import { githubApiRateLimit } from "./middleware/rateLimitMiddleware";
 import User from "./model/User";
+import commentRoute from './routes/commentRoutes';
 dotenv.config();
 
 const app: Application = express();
@@ -21,7 +22,7 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: "http://localhost:5173",
     credentials: true,
   })
 );
@@ -57,8 +58,7 @@ app.get(
   passport.authenticate("github", { scope: ["user:email"] })
 );
 
-
-// GitHub OAuth callback
+app.use('/api/comment', commentRoute)
 app.get(
   "/auth/github/callback",
   passport.authenticate("github", { failureRedirect: "/" }),

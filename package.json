@@ -1,13 +1,19 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "PullQuest API",
+  "license": "MIT",
+  "main": "dist/index.js",
+
   "scripts": {
-    "dev": "ts-node-dev --respawn src/index.ts"
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+
+    "vercel-build": "npm run build"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "",
+
   "dependencies": {
     "@octokit/rest": "^22.0.0",
     "axios": "^1.9.0",
@@ -25,6 +31,7 @@
     "passport": "^0.7.0",
     "passport-github2": "^0.1.12"
   },
+
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.19",
@@ -36,5 +43,9 @@
     "nodemon": "^3.1.10",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.3"
+  },
+
+  "engines": {
+    "node": ">=18"
   }
 }

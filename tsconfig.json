@@ -1,15 +1,13 @@
 {
   "compilerOptions": {
-    "target": "ES6",
-    "baseUrl": "./",
-    "module": "CommonJS",
-    "paths": {},
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "strict": true,
-    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "outDir": "dist",
+    "rootDir": "src",
+    "moduleResolution": "node",
+    "target": "ES2020",
+    "module": "commonjs",
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "strict": true
   },
-  "include": ["src"]
+  "include": ["src/**/*"]
 }
