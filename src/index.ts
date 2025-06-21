@@ -19,6 +19,15 @@ dotenv.config();
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
 
+// right after: const app = express();
+app.get("/", (_req, res) => {
+  res.send("🎉 PullQuest API is live! Try /health or /ping");
+});
+
+app.get("/ping", (_req, res) => {
+  res.send("pong");
+});
+
 app.use(helmet());
 app.use(
   cors({
@@ -37,21 +46,6 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Middleware to skip verifyToken on /login and /register
-const jwtMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
-  // Allow unauthenticated access to these paths
-  if (req.path === "/login" || req.path === "/register") {
-    next();
-    return;
-  }
-  // Otherwise verify token
-  verifyToken(req, res, next);
-};
-
 // Start GitHub OAuth flow
 app.get(
   "/auth/github",
@@ -69,7 +63,6 @@ app.get(
       refreshToken: string | null;
     };
 
-    // ─── Persist into MongoDB ─────────────────────────────────────────
     const { profile, accessToken, refreshToken } = user;
     const githubUsername = profile.username;
     const githubInfo    = JSON.stringify(profile._json);
@@ -90,7 +83,6 @@ app.get(
     }).catch(err => {
         console.error("❌ Error saving GitHub user to DB:", err);
     });
-    // ─────────────────────────────────────────────────────────────────
 
     console.log("✅ GitHub OAuth success:");
     console.log("Full user object →", JSON.stringify(user, null, 2));
