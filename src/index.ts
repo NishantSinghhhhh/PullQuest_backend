@@ -3,7 +3,6 @@ import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import authRoutes from "./routes/auth";
-import { verifyToken } from "./middleware/verifyToken";
 import helmet from "helmet";
 import { handlePRWebhook } from "./webhooks/githubWebhooks";
 import session from "express-session";
@@ -14,20 +13,31 @@ import maintainerRoutes from "./routes/MaintainerRoutes";
 import { githubApiRateLimit } from "./middleware/rateLimitMiddleware";
 import User from "./model/User";
 import commentRoute from './routes/commentRoutes';
+
 dotenv.config();
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
 
-// right after: const app = express();
+// Basic routes first (most specific)
 app.get("/", (_req, res) => {
   res.send("🎉 PullQuest API is live! Try /health or /ping");
 });
 
-app.get("/ping", (_req, res) => {
+app.get("/ping", (req, res) => {
   res.send("pong");
 });
 
+app.get("/health", (req: Request, res: Response): void => {
+  res.status(200).json({
+    success: true,
+    message: "Server is running",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development",
+  });
+});
+
+// Middleware
 app.use(helmet());
 app.use(
   cors({
@@ -46,13 +56,12 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Start GitHub OAuth flow
+// GitHub OAuth routes (specific paths)
 app.get(
   "/auth/github",
   passport.authenticate("github", { scope: ["user:email"] })
 );
 
-app.use('/api/comment', commentRoute)
 app.get(
   "/auth/github/callback",
   passport.authenticate("github", { failureRedirect: "/" }),
@@ -65,7 +74,7 @@ app.get(
 
     const { profile, accessToken, refreshToken } = user;
     const githubUsername = profile.username;
-    const githubInfo    = JSON.stringify(profile._json);
+    const githubInfo = JSON.stringify(profile._json);
 
     User.findOneAndUpdate(
       { githubUsername },
@@ -96,17 +105,7 @@ app.get("/api/user", (req, res) => {
   res.json(req.user || null);
 });
 
-app.use("/api", githubApiRateLimit);
-
-app.get("/health", (req: Request, res: Response): void => {
-  res.status(200).json({
-    success: true,
-    message: "Server is running",
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || "development",
-  });
-});
-
+// Webhooks (specific path)
 app.post(
   "/webhooks/github",
   express.json({
@@ -115,11 +114,34 @@ app.post(
   handlePRWebhook
 );
 
-app.use("/", authRoutes);
-
+// API routes with rate limiting (specific paths)
+app.use("/api", githubApiRateLimit);
+app.use('/api/comment', commentRoute);
 app.use("/api/contributor", contributorRoutes);
 app.use("/api/maintainer", maintainerRoutes);
-//db connection function
+
+// Auth routes LAST (most general - catches remaining routes)
+app.use("/", authRoutes);
+
+// 👇 place this AFTER all other app.use / app.get / router mounts
+app.use((_req: Request, res: Response) => {
+  res.status(404).json({
+    error: "Route not found",
+    message: "The requested endpoint does not exist",
+  });
+});
+
+
+// Global error handler
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error('Server Error:', err);
+  res.status(500).json({
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+  });
+});
+
+// Database connection function
 const connectDB = async (): Promise<void> => {
   try {
     const mongoURI = process.env.MONGO_URI;
@@ -140,8 +162,11 @@ const startServer = async (): Promise<void> => {
   try {
     await connectDB();
 
+    // Import scheduler after DB connection
     import("./utils/coinRefillScheduler").then((module) => {
       module.scheduleCoinRefill();
+    }).catch(err => {
+      console.warn("⚠️ Scheduler import failed:", err.message);
     });
 
     app.listen(PORT, () => {
