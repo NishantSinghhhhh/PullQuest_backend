@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "description": "PullQuest API",
   "license": "MIT",
+  "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "dev": "ts-node-dev --respawn --transpile-only --esm src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "vercel-build": "npm run build"
