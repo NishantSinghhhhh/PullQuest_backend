@@ -8,7 +8,7 @@ import helmet from "helmet";
 import { handlePRWebhook } from "./webhooks/githubWebhooks";
 import passport from "passport";
 import "./auth/github";
-import contributorRoutes from "./routes/contributorRoutes";
+// import contributorRoutes from "./routes/contributorRoutes";
 import maintainerRoutes from "./routes/MaintainerRoutes";
 import { githubApiRateLimit } from "./middleware/rateLimitMiddleware";
 import User from "./model/User";
@@ -111,7 +111,7 @@ app.get(
 
 app.use("/api", githubApiRateLimit);
 app.use('/api/comment', commentRoute);
-app.use("/api/contributor", contributorRoutes);
+// app.use("/api/contributor", contributorRoutes);
 app.use("/api/maintainer", maintainerRoutes);
 app.use("/api/LLM", LLMRoutes);
 
