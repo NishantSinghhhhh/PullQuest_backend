@@ -97,13 +97,13 @@ app.get(
       const encoded = encodeURIComponent(JSON.stringify(frontendUser));
       // after you build `encoded`
       res.redirect(
-        `${process.env.FRONTEND_URL || "http://localhost:5173"}/login?user=${encoded}`
+        `${process.env.FRONTEND_URL || "https://pull-quest-frontend.vercel.app"}/login?user=${encoded}`
       );
 
     } catch (err) {
       console.error("❌ OAuth callback error:", err);
       res.redirect(
-        `${process.env.FRONTEND_URL || "http://localhost:5173"}?error=auth_failed`
+        `${process.env.FRONTEND_URL || "https://pull-quest-frontend.vercel.app"}?error=auth_failed`
       );
     }
   }
