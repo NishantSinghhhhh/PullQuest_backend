@@ -85,3 +85,4 @@ stakeSchema.index({ issueId: 1 });
 stakeSchema.index({ status: 1 });
 const Stake = mongoose_1.default.model("Stake", stakeSchema);
 exports.default = Stake;
+//# sourceMappingURL=stake.js.map

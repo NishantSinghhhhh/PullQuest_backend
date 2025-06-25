@@ -5,3 +5,4 @@ const contextController_1 = require("../controllers/contextController"); // ✅ 
 const router = (0, express_1.Router)();
 router.get("/context/:email", contextController_1.getUserByEmail);
 exports.default = router;
+//# sourceMappingURL=contextRoutes.js.map

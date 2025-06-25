@@ -149,3 +149,4 @@ class StakeController {
     }
 }
 exports.StakeController = StakeController;
+//# sourceMappingURL=stakeController.js.map

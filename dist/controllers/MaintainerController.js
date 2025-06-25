@@ -3,8 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getIssueByNumber = void 0;
-exports.listUserOrgs = listUserOrgs;
+exports.getOrgApiKeys = exports.getIssueByNumber = void 0;
+exports.listOrgRepos = listOrgRepos;
 exports.listUserRepos = listUserRepos;
 exports.listRepoIssues = listRepoIssues;
 exports.listRepoPullRequests = listRepoPullRequests;
@@ -14,50 +14,20 @@ exports.updateUserStatsAsUser = updateUserStatsAsUser;
 // src/utils/github.ts
 const rest_1 = require("@octokit/rest");
 const User_1 = __importDefault(require("../model/User"));
-async function listUserOrgs(username, perPage = 30, page = 1) {
-    const token = process.env.GITHUB_TOKEN;
-    if (!token) {
-        throw new Error("GITHUB_TOKEN not configured in environment");
-    }
-    if (!username) {
-        throw new Error("GitHub username is required");
-    }
-    const octokit = new rest_1.Octokit({
-        auth: token,
-        userAgent: "PullQuest-Backend v1.0.0",
+const Org_1 = __importDefault(require("../model/Org"));
+// src/services/github.ts
+async function listOrgRepos(org, token) {
+    const response = await fetch(`https://api.github.com/orgs/${encodeURIComponent(org)}/repos?per_page=10`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/vnd.github+json",
+        },
     });
-    try {
-        const { data } = await octokit.request('GET /users/{username}/orgs', {
-            username: username,
-            headers: {
-                Accept: "application/vnd.github+json",
-                "X-GitHub-Api-Version": "2022-11-28",
-            },
-            per_page: perPage,
-            page,
-        });
-        return data;
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`GitHub API error fetching org repos: ${response.status} ${response.statusText} — ${text}`);
     }
-    catch (error) {
-        console.error("GitHub API Error:", error);
-        // Handle specific GitHub API errors
-        if (error.status === 401) {
-            throw new Error("Invalid GitHub token in environment");
-        }
-        if (error.status === 403) {
-            throw new Error("GitHub API rate limit exceeded or insufficient permissions");
-        }
-        if (error.status === 404) {
-            throw new Error("User not found or organizations are private");
-        }
-        if (error.status === 422) {
-            throw new Error("Invalid username");
-        }
-        if (error.status >= 500) {
-            throw new Error("GitHub API server error. Please try again later");
-        }
-        throw new Error(`GitHub API error: ${error.message || 'Unknown error'}`);
-    }
+    return (await response.json());
 }
 async function listUserRepos(username, perPage = 30, page = 1) {
     const token = process.env.GITHUB_TOKEN;
@@ -356,3 +326,52 @@ async function updateUserStatsAsUser(githubUsername, addedXp, addedCoins) {
         newCoins: updated.coins,
     };
 }
+const getOrgApiKeys = async (req, res) => {
+    try {
+        /* 0️⃣ Debug ---------------------------------------------------------- */
+        console.log("📥 /api-keys query:", req.query);
+        console.log("🔒 req.user (verifyToken):", req.user);
+        /* 1️⃣ Validate `orgName` -------------------------------------------- */
+        const { orgName, maintainerUsername: qMaintainer } = req.query;
+        if (!orgName) {
+            res.status(400).json({
+                success: false,
+                message: "`orgName` query param required",
+            });
+            return;
+        }
+        /* 2️⃣ Resolve maintainer username ----------------------------------- */
+        const maintainerUsername = qMaintainer || req.user?.githubUsername;
+        if (!maintainerUsername) {
+            res.status(401).json({
+                success: false,
+                message: "Maintainer GitHub username missing (provide query param or login)",
+            });
+            return;
+        }
+        console.log("✅ Maintainer GitHub username:", maintainerUsername);
+        /* 3️⃣ Look up the org document -------------------------------------- */
+        const orgDoc = await Org_1.default.findOne({
+            githubUsername: maintainerUsername, // <- maintainer
+            "organization.login": orgName, // <- org
+        }).select("apiKeys organization.login");
+        console.log("🔍 DB lookup:", orgDoc ? "FOUND" : "NOT FOUND");
+        if (!orgDoc) {
+            res.status(404).json({
+                success: false,
+                message: `No organization "${orgName}" found for maintainer "${maintainerUsername}"`,
+            });
+            return;
+        }
+        /* 4️⃣ Filter the API keys for this maintainer ----------------------- */
+        const filteredKeys = (orgDoc.apiKeys || []).filter((k) => k.githubUsername === maintainerUsername);
+        console.log(`🔑 ${filteredKeys.length}/${orgDoc.apiKeys.length} key(s) match maintainer`);
+        res.status(200).json({ success: true, data: filteredKeys });
+    }
+    catch (err) {
+        console.error("❌ Error fetching API keys:", err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+exports.getOrgApiKeys = getOrgApiKeys;
+//# sourceMappingURL=MaintainerController.js.map

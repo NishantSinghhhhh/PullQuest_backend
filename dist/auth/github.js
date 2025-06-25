@@ -35,3 +35,4 @@ passport_1.default.use(new passport_github2_1.Strategy({
     };
     return done(null, user);
 }));
+//# sourceMappingURL=github.js.map

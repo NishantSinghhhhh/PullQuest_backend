@@ -337,3 +337,4 @@ class GitHubOrganizationsService {
     }
 }
 exports.GitHubOrganizationsService = GitHubOrganizationsService;
+//# sourceMappingURL=githubService.js.map

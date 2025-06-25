@@ -131,3 +131,4 @@ const validateMultipleRoles = (allowedRoles) => {
     };
 };
 exports.validateMultipleRoles = validateMultipleRoles;
+//# sourceMappingURL=roleMiddleware.js.map

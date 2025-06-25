@@ -192,3 +192,4 @@ MergedPRSchema.index({ 'user.login': 1, mergedAt: -1 });
 // Model
 const MergedPR = mongoose_1.default.model('MergedPR', MergedPRSchema);
 exports.default = MergedPR;
+//# sourceMappingURL=MergedPrs.js.map

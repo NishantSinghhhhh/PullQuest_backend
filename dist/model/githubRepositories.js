@@ -79,3 +79,4 @@ const gitHubRepositorySchema = new mongoose_1.Schema({
     timestamps: true,
 });
 exports.default = mongoose_1.default.model("GitHubRepository", gitHubRepositorySchema);
+//# sourceMappingURL=githubRepositories.js.map

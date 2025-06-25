@@ -27,3 +27,4 @@ async function ingestIssueData(params) {
     // 3) save
     await doc.save();
 }
+//# sourceMappingURL=issueIngestService.js.map

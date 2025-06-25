@@ -1,5 +1,4 @@
 import { Router } from "express";
-import fetch from "node-fetch";
 import { Request, Response, NextFunction } from "express";
 import User from "../model/User";
 import {

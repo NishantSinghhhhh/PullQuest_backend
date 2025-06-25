@@ -56,3 +56,4 @@ async function getUserProfile(userAccessToken) {
         throw new Error(`GitHub API error: ${error.message}`);
     }
 }
+//# sourceMappingURL=github.js.map

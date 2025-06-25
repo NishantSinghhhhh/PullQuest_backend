@@ -118,3 +118,4 @@ MaintainerIssueSchema.index({ createdAt: -1 });
 // Model
 const MaintainerIssue = mongoose_1.default.model('MaintainerIssue', MaintainerIssueSchema);
 exports.default = MaintainerIssue;
+//# sourceMappingURL=MaintainerIssues.js.map

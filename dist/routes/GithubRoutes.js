@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const node_fetch_1 = __importDefault(require("node-fetch"));
 const User_1 = __importDefault(require("../model/User"));
 const githubService_1 = require("../services/githubService");
 const orgService = new githubService_1.GitHubOrganizationsService(process.env.GITHUB_TOKEN);
@@ -53,7 +52,7 @@ router.get("/auth/callback/github", async (req, res, next) => {
             return;
         }
         // Exchange code for token
-        const tokenResponse = await (0, node_fetch_1.default)("https://github.com/login/oauth/access_token", {
+        const tokenResponse = await fetch("https://github.com/login/oauth/access_token", {
             method: "POST",
             headers: {
                 Accept: "application/json",
@@ -73,7 +72,7 @@ router.get("/auth/callback/github", async (req, res, next) => {
             return;
         }
         // Fetch GitHub profile
-        const userResponse = await (0, node_fetch_1.default)("https://api.github.com/user", {
+        const userResponse = await fetch("https://api.github.com/user", {
             headers: { Authorization: `Bearer ${access_token}` },
         });
         const githubProfile = await userResponse.json();
@@ -140,3 +139,4 @@ router.get("/auth/callback/github", async (req, res, next) => {
     }
 });
 exports.default = router;
+//# sourceMappingURL=GithubRoutes.js.map

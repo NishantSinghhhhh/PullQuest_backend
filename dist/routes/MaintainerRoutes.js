@@ -3,18 +3,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMaintainerIssueById = exports.mergePullRequest = exports.createIssue = void 0;
+exports.getMaintainerIssueById = exports.mergePullRequest = exports.createIssue = exports.getOrgsByUsername = void 0;
 const express_1 = require("express");
-const User_1 = __importDefault(require("../model/User"));
 const MaintainerController_1 = require("../controllers/MaintainerController");
 const verifyToken_1 = require("../middleware/verifyToken");
 const MaintainerController_2 = require("../controllers/MaintainerController");
-const IssueIngestController_1 = require("../controllers/IssueIngestController");
-const PRIngesterController_1 = require("../controllers/PRIngesterController");
+const IssueIngestController_1 = require("../ingesters/IssueIngestController");
+const PRIngesterController_1 = require("../ingesters/PRIngesterController");
+const OrgApiIngester_1 = require("../ingesters/OrgApiIngester");
 const MaintainerIssues_1 = __importDefault(require("../model/MaintainerIssues"));
+const generateApiKey_1 = require("../utils/generateApiKey");
 const router = (0, express_1.Router)();
 router.use(verifyToken_1.verifyToken);
-// GET /api/maintainer/orgs-by-username?githubUsername=theuser
 const getOrgsByUsername = async (req, res) => {
     try {
         console.log("---- Incoming request to /orgs-by-username ----");
@@ -25,22 +25,14 @@ const getOrgsByUsername = async (req, res) => {
             res.status(400).json({ success: false, message: "githubUsername is required" });
             return;
         }
-        // Find user by githubUsername
-        const mongoUser = await User_1.default.findOne({ githubUsername }).select("accessToken githubUsername");
-        if (!mongoUser?.accessToken) {
-            res.status(404).json({ success: false, message: "GitHub token not found for user" });
+        const token = process.env.GITHUB_TOKEN;
+        if (!token) {
+            console.error("🚨 GITHUB_TOKEN not set in env");
+            res.status(500).json({ success: false, message: "Server misconfiguration" });
             return;
         }
-        // Validate that githubUsername exists in the database record
-        if (!mongoUser.githubUsername) {
-            res.status(404).json({
-                success: false,
-                message: "GitHub username not found in user record"
-            });
-            return;
-        }
-        // Now TypeScript knows githubUsername is definitely a string
-        const orgs = await (0, MaintainerController_1.listUserOrgs)(mongoUser.githubUsername);
+        // listUserOrgs should accept a token parameter now
+        const orgs = await (0, MaintainerController_1.listOrgRepos)(githubUsername, token);
         res.status(200).json({ success: true, data: orgs });
     }
     catch (err) {
@@ -48,6 +40,7 @@ const getOrgsByUsername = async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 };
+exports.getOrgsByUsername = getOrgsByUsername;
 // NEW: GET /api/maintainer/repos-by-username?githubUsername=theuser&per_page=30&page=1
 const getReposByUsername = async (req, res) => {
     try {
@@ -212,7 +205,28 @@ router.patch("/users/update-stats", async (req, res, next) => {
         next(err);
     }
 });
-router.get("/orgs-by-username", getOrgsByUsername);
+router.post("/api-key", 
+// 0️⃣ Log everything the frontend sent
+(req, res, next) => {
+    console.log("📥 api-key request body:", req.body);
+    next();
+}, 
+// 1️⃣ Validate & generate
+(req, res, next) => {
+    const { orgName } = req.body;
+    if (!orgName) {
+        console.log("❌ api-key: Missing orgName in request body");
+        res.status(400).json({ success: false, message: "orgName required" });
+        return;
+    }
+    const secretKey = (0, generateApiKey_1.generateApiKey)(orgName);
+    console.log(`✅ api-key generated for org "${orgName}": ${secretKey}`);
+    req.body.secretKey = secretKey;
+    next(); // ← hand off to the next middleware
+}, 
+// 2️⃣ Ingest into MongoDB
+OrgApiIngester_1.ingestApiKey);
+router.get("/orgs-by-username", exports.getOrgsByUsername);
 router.get("/repos-by-username", getReposByUsername); // <-- Register your new route
 router.get("/repo-issues", getRepoIssues);
 router.post("/create-issue", exports.createIssue);
@@ -222,4 +236,7 @@ router.get("/issue-by-number", MaintainerController_1.getIssueByNumber);
 router.post("/merge-pr", exports.mergePullRequest);
 router.get("/issue-by-id", exports.getMaintainerIssueById);
 router.post("/ingest-merged-pr", PRIngesterController_1.ingestMergedPR);
+router.post("/ingest-apikey", OrgApiIngester_1.ingestApiKey);
+router.get("/api-keys", MaintainerController_1.getOrgApiKeys);
 exports.default = router;
+//# sourceMappingURL=MaintainerRoutes.js.map

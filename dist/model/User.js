@@ -122,3 +122,4 @@ userSchema.methods.xpForNextRank = function () {
     return 0;
 };
 exports.default = mongoose_1.default.model("User", userSchema);
+//# sourceMappingURL=User.js.map

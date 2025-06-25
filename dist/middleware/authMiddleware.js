@@ -52,3 +52,4 @@ const authMiddleware = (req, res, next) => {
     }
 };
 exports.authMiddleware = authMiddleware;
+//# sourceMappingURL=authMiddleware.js.map

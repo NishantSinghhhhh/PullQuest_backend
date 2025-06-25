@@ -1,6 +1,5 @@
 // src/controllers/maintainer.ts
 import { Request, Response, NextFunction } from "express";
-import fetch from "node-fetch";
 import OpenAI from "openai";
 import { buildRepoContextPrompt, RepoInfo } from "../data/LLM";
 

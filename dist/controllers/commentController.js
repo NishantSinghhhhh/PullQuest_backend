@@ -66,3 +66,4 @@ async function commentOnIssues(req, res, next) {
         next(err);
     }
 }
+//# sourceMappingURL=commentController.js.map

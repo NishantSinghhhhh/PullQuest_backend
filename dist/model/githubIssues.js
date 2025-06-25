@@ -128,3 +128,4 @@ gitHubIssuesSchema.index({ githubUsername: 1 });
 gitHubIssuesSchema.index({ "suggestedIssues.repository.language": 1 });
 gitHubIssuesSchema.index({ lastFetched: 1 });
 exports.default = mongoose_1.default.model("GitHubIssues", gitHubIssuesSchema);
+//# sourceMappingURL=githubIssues.js.map
