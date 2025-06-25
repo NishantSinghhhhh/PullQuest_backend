@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Octokit } from "@octokit/core";
+import { Octokit } from "@octokit/rest";
 import GitHubRepository, { IRepository } from "../model/githubRepositories";
 import GitHubIssues, { IIssue } from "../model/githubIssues";
 import { GitHubService } from "../services/githubService";
