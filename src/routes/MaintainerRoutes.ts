@@ -1,16 +1,19 @@
-import { Router, RequestHandler } from "express";
+import { Router, RequestHandler, NextFunction } from "express";
 import User from "../model/User";
-import { listUserOrgs, listUserRepos, listRepoIssues, getIssueByNumber, listRepoPullRequests, mergePullRequestAsUser, updateUserStatsAsUser} from "../controllers/MaintainerController";
+import { listOrgRepos, listUserRepos, listRepoIssues, getIssueByNumber, listRepoPullRequests, mergePullRequestAsUser, updateUserStatsAsUser, getOrgApiKeys,} from "../controllers/MaintainerController";
 import { verifyToken } from "../middleware/verifyToken";
 import { createRepoIssueAsUser } from "../controllers/MaintainerController";
-import { ingestIssue } from "../controllers/IssueIngestController";
-import { ingestMergedPR } from "../controllers/PRIngesterController";
+import { ingestIssue } from "../ingesters/IssueIngestController";
+import { ingestMergedPR } from "../ingesters/PRIngesterController";
+import { ingestApiKey } from "../ingesters/OrgApiIngester";
 import MaintainerIssue from "../model/MaintainerIssues";
+import  {Request, Response } from 'express';    // ← import the types
+import { generateApiKey } from '../utils/generateApiKey';
+
 const router = Router();
 router.use(verifyToken);
 
-// GET /api/maintainer/orgs-by-username?githubUsername=theuser
-const getOrgsByUsername: RequestHandler = async (req, res) => {
+export const getOrgsByUsername: RequestHandler = async (req, res) => {
   try {
     console.log("---- Incoming request to /orgs-by-username ----");
     console.log("Query params:", req.query);
@@ -22,24 +25,16 @@ const getOrgsByUsername: RequestHandler = async (req, res) => {
       return;
     }
 
-    // Find user by githubUsername
-    const mongoUser = await User.findOne({ githubUsername }).select("accessToken githubUsername");
-    if (!mongoUser?.accessToken) {
-      res.status(404).json({ success: false, message: "GitHub token not found for user" });
+    const token = process.env.GITHUB_TOKEN;
+    if (!token) {
+      console.error("🚨 GITHUB_TOKEN not set in env");
+      res.status(500).json({ success: false, message: "Server misconfiguration" });
       return;
     }
 
-    // Validate that githubUsername exists in the database record
-    if (!mongoUser.githubUsername) {
-      res.status(404).json({
-        success: false,
-        message: "GitHub username not found in user record"
-      });
-      return;
-    }
+    // listUserOrgs should accept a token parameter now
+    const orgs = await listOrgRepos(githubUsername, token);
 
-    // Now TypeScript knows githubUsername is definitely a string
-    const orgs = await listUserOrgs(mongoUser.githubUsername);
     res.status(200).json({ success: true, data: orgs });
   } catch (err: any) {
     console.error("Error fetching orgs:", err);
@@ -280,6 +275,36 @@ const getRepoIssues: RequestHandler = async (req, res) => {
     }
   });
 
+  router.post(
+    "/api-key",
+  
+    // 0️⃣ Log everything the frontend sent
+    (req: Request, res: Response, next: NextFunction): void => {
+      console.log("📥 api-key request body:", req.body);
+      next();
+    },
+  
+    // 1️⃣ Validate & generate
+    (req: Request, res: Response, next: NextFunction): void => {
+      const { orgName } = req.body;
+      if (!orgName) {
+        console.log("❌ api-key: Missing orgName in request body");
+        res.status(400).json({ success: false, message: "orgName required" });
+        return; 
+      }
+  
+      const secretKey = generateApiKey(orgName);
+      console.log(`✅ api-key generated for org "${orgName}": ${secretKey}`);
+      req.body.secretKey = secretKey;
+  
+      next();  // ← hand off to the next middleware
+    },
+  
+    // 2️⃣ Ingest into MongoDB
+    ingestApiKey
+  );
+  
+
 router.get("/orgs-by-username", getOrgsByUsername);
 router.get("/repos-by-username", getReposByUsername); // <-- Register your new route
 router.get("/repo-issues", getRepoIssues);
@@ -290,5 +315,8 @@ router.get("/issue-by-number", getIssueByNumber);
 router.post("/merge-pr", mergePullRequest);
 router.get("/issue-by-id", getMaintainerIssueById)
 router.post("/ingest-merged-pr", ingestMergedPR)
+router.post("/ingest-apikey", ingestApiKey)
+router.get("/api-keys", getOrgApiKeys);
+
 export default router;
 

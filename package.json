@@ -4,14 +4,12 @@
   "description": "PullQuest API",
   "license": "MIT",
   "main": "dist/index.js",
-
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "vercel-build": "npm run build"
   },
-
   "dependencies": {
     "@octokit/rest": "^22.0.0",
     "axios": "^1.9.0",
@@ -24,12 +22,13 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.15.1",
+    "nanoid": "^5.1.5",
     "node-cron": "^4.1.0",
     "node-fetch": "^3.3.2",
+    "openai": "^5.7.0",
     "passport": "^0.7.0",
     "passport-github2": "^0.1.12"
   },
-
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.19",
@@ -42,7 +41,6 @@
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.3"
   },
-
   "engines": {
     "node": ">=18"
   }
