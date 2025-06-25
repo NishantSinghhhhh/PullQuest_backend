@@ -125,7 +125,6 @@ app.use((err, req, res, next) => {
         message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
     });
 });
-// MongoDB connection
 let isConnected = false;
 const connectDB = async () => {
     if (isConnected)
@@ -144,8 +143,17 @@ const connectDB = async () => {
         throw error;
     }
 };
-// ✅ Serverless export (required for Vercel)
-exports.default = app;
+const port = Number(process.env.PORT || 5000);
+connectDB()
+    .then(() => {
+    app.listen(port, () => {
+        console.log(`🚀 Server listening on port ${port}`);
+    });
+})
+    .catch((err) => {
+    console.error('❌ Failed to connect to DB, shutting down', err);
+    process.exit(1);
+});
 // ✅ For local development
 if (process.env.NODE_ENV !== 'production') {
     const PORT = process.env.PORT || 5000;
@@ -155,4 +163,6 @@ if (process.env.NODE_ENV !== 'production') {
         });
     });
 }
+// ✅ Serverless export (required for Vercel)
+exports.default = app;
 //# sourceMappingURL=index.js.map
