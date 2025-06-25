@@ -120,7 +120,26 @@ app.post("/webhooks/github",
   express.json({ type: "application/json" }), 
   handlePRWebhook
 );
+app.get("/", (_req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    service : "PullQuest Backend API",
+    version : "v1.0.0",
+    message : "👋  Welcome!  The API is alive and ready.",
+    docs    : "/health, /api/maintainer/…, /auth/github, …",
+    note    : "See /health for a lightweight uptime probe."
+  });
+});
 
+// ---------------------------------------------------------------------------
+// ⬇️ 2)  404 fallback  (keep it LAST)
+// ---------------------------------------------------------------------------
+app.use((_req: Request, res: Response) => {
+  res.status(404).json({
+    error   : "Route not found",
+    message : "The requested endpoint does not exist",
+  });
+});
 // Auth routes
 app.use("/", authRoutes);
 
