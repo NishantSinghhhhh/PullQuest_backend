@@ -3,7 +3,7 @@ import { Octokit } from "@octokit/rest";
 import { RequestHandler } from "express";
 import User from "../model/User";
 import GitHubOrganizationModel from "../model/Org";
-import fetch from "node-fetch";
+
 
 // src/services/github.ts
 export async function listOrgRepos(
