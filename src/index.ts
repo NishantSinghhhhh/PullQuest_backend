@@ -25,7 +25,7 @@ app.use(cors({
   origin: (incomingOrigin, callback) => {
     const whitelist = [
       "http://localhost:5173",
-      "https://pull-quest-frontend.vercel.app/"
+      "https://pull-quest-frontend.vercel.app"
     ];
     if (!incomingOrigin || whitelist.includes(incomingOrigin)) {
       // allow requests with no origin (like mobile apps, curl) 
