@@ -50,6 +50,7 @@ app.get("/health", (req, res) => {
         environment: process.env.NODE_ENV || "development",
     });
 });
+app.use("/", auth_1.default);
 // GitHub OAuth (without sessions)
 app.get("/auth/github", passport_1.default.authenticate("github", {
     scope: ["user:email"],
@@ -110,7 +111,6 @@ app.use((_req, res) => {
     });
 });
 // Auth routes
-app.use("/", auth_1.default);
 app.use((_req, res) => {
     res.status(404).json({
         error: "Route not found",

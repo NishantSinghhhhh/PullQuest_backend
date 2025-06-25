@@ -51,6 +51,7 @@ app.get("/health", (req: Request, res: Response): void => {
   });
 });
 
+app.use("/", authRoutes);
 // GitHub OAuth (without sessions)
 app.get("/auth/github", passport.authenticate("github", { 
   scope: ["user:email"],
@@ -99,7 +100,7 @@ app.get(
       res.redirect(
         `${process.env.FRONTEND_URL || "https://pull-quest-frontend.vercel.app"}/login?user=${encoded}`
       );
-
+      
     } catch (err) {
       console.error("❌ OAuth callback error:", err);
       res.redirect(
@@ -138,7 +139,6 @@ app.use((_req: Request, res: Response) => {
   });
 });
 // Auth routes
-app.use("/", authRoutes);
 
 app.use((_req: Request, res: Response) => {
   res.status(404).json({
