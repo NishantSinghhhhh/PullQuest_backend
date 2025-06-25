@@ -25,7 +25,7 @@ app.use(cors({
   origin: (incomingOrigin, callback) => {
     const whitelist = [
       "http://localhost:5173",
-      "https://your-production-domain.com"
+      "https://pull-quest-frontend.vercel.app/"
     ];
     if (!incomingOrigin || whitelist.includes(incomingOrigin)) {
       // allow requests with no origin (like mobile apps, curl) 
@@ -131,9 +131,6 @@ app.get("/", (_req: Request, res: Response) => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// ⬇️ 2)  404 fallback  (keep it LAST)
-// ---------------------------------------------------------------------------
 app.use((_req: Request, res: Response) => {
   res.status(404).json({
     error   : "Route not found",
@@ -143,8 +140,6 @@ app.use((_req: Request, res: Response) => {
 // Auth routes
 app.use("/", authRoutes);
 
-// 404 handler
-// 👇 place this AFTER all other app.use / app.get / router mounts
 app.use((_req: Request, res: Response) => {
   res.status(404).json({
     error: "Route not found",
