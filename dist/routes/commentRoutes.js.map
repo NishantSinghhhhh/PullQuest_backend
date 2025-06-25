@@ -1,1 +1,1 @@
-{"version":3,"file":"commentRoutes.js","sourceRoot":"","sources":["../../src/routes/commentRoutes.ts"],"names":[],"mappings":";;AAAA,qCAAiC;AACjC,wEAAmE;AAEnE,MAAM,MAAM,GAAG,IAAA,gBAAM,GAAE,CAAC;AAExB,MAAM,CAAC,GAAG,CAAC,SAAS,EAAE,mCAAe,CAAC,CAAC;AAEvC,kBAAe,MAAM,CAAC"}
+{"version":3,"file":"commentRoutes.js","sourceRoot":"","sources":["../../src/routes/commentRoutes.ts"],"names":[],"mappings":";;AAAA,8BAA8B;AAC9B,qCAAiC;AACjC,wEAAmE;AAEnE,MAAM,MAAM,GAAG,IAAA,gBAAM,GAAE,CAAC;AAExB,8BAA8B;AAC9B,MAAM,CAAC,IAAI,CAAC,SAAS,EAAE,mCAAe,CAAC,CAAC;AAExC,kBAAe,MAAM,CAAC"}

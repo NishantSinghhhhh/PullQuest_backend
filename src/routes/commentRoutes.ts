@@ -1,8 +1,10 @@
-import { Router } from 'express';
-import { commentOnIssues } from '../controllers/commentController';
+// src/routes/commentRoutes.ts
+import { Router } from "express";
+import { commentOnIssues } from "../controllers/commentController";
 
 const router = Router();
 
-router.get('/issues', commentOnIssues);
+/* POST /api/comment/issues */
+router.post("/issues", commentOnIssues);
 
 export default router;
