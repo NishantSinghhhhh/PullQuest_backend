@@ -27,7 +27,7 @@ app.use((0, cors_1.default)({
     origin: (incomingOrigin, callback) => {
         const whitelist = [
             "http://localhost:5173",
-            "https://your-production-domain.com"
+            "https://pull-quest-frontend.vercel.app"
         ];
         if (!incomingOrigin || whitelist.includes(incomingOrigin)) {
             // allow requests with no origin (like mobile apps, curl) 
@@ -79,11 +79,11 @@ app.get("/auth/github/callback", passport_1.default.authenticate("github", { fai
         };
         const encoded = encodeURIComponent(JSON.stringify(frontendUser));
         // after you build `encoded`
-        res.redirect(`${process.env.FRONTEND_URL || "http://localhost:5173"}/login?user=${encoded}`);
+        res.redirect(`${process.env.FRONTEND_URL || "https://pull-quest-frontend.vercel.app"}/login?user=${encoded}`);
     }
     catch (err) {
         console.error("❌ OAuth callback error:", err);
-        res.redirect(`${process.env.FRONTEND_URL || "http://localhost:5173"}?error=auth_failed`);
+        res.redirect(`${process.env.FRONTEND_URL || "https://pull-quest-frontend.vercel.app"}?error=auth_failed`);
     }
 });
 app.use("/api", rateLimitMiddleware_1.githubApiRateLimit);
@@ -93,10 +93,24 @@ app.use("/api/maintainer", MaintainerRoutes_1.default);
 app.use("/api/LLM", LLMroutes_1.default);
 // Webhooks
 app.post("/webhooks/github", express_1.default.json({ type: "application/json" }), githubWebhooks_1.handlePRWebhook);
+app.get("/", (_req, res) => {
+    res.status(200).json({
+        success: true,
+        service: "PullQuest Backend API",
+        version: "v1.0.0",
+        message: "👋  Welcome!  The API is alive and ready.",
+        docs: "/health, /api/maintainer/…, /auth/github, …",
+        note: "See /health for a lightweight uptime probe."
+    });
+});
+app.use((_req, res) => {
+    res.status(404).json({
+        error: "Route not found",
+        message: "The requested endpoint does not exist",
+    });
+});
 // Auth routes
 app.use("/", auth_1.default);
-// 404 handler
-// 👇 place this AFTER all other app.use / app.get / router mounts
 app.use((_req, res) => {
     res.status(404).json({
         error: "Route not found",
