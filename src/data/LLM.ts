@@ -99,9 +99,16 @@ export interface RepoInfo {
   - Performance Monitoring: Analytics, error tracking, performance metrics
   - SEO Considerations: Meta tags, structured data, server-side rendering
   
-  ### Code Quality & Patterns
+### Code Quality & Patterns
   - Coding Standards: ESLint, Prettier, TypeScript configuration
-  - Design Patterns: Common patterns used throughout the codebase
+  - Coding Style Patterns: Identify specific naming conventions and code organization patterns
+    * Variable/Function Naming: camelCase, snake_case, PascalCase usage patterns
+    * File/Directory Naming: kebab-case, camelCase, PascalCase for files and folders
+    * Component/Class Naming: React component patterns, class naming conventions
+    * Constants/Enums: UPPER_CASE, PascalCase, or other constant naming patterns
+    * Import/Export Patterns: Named exports, default exports, barrel exports
+    * Code Organization Style: Functional vs OOP approaches, composition patterns
+  - Design Patterns: Common patterns used throughout the codebase (Factory, Observer, Singleton, etc.)
   - Error Handling: How errors are caught, logged, and handled
   - Logging & Monitoring: Logging strategies and monitoring setup
   - Documentation: README quality, inline documentation, API docs`;
